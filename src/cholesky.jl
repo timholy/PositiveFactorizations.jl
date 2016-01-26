@@ -2,6 +2,12 @@ import Base: *, \, unsafe_getindex
 using Base.BLAS: syr!, ger!, syrk!, syr2k!
 using Base.LinAlg: BlasInt, BlasFloat, Cholesky, CholeskyPivoted
 
+if VERSION < v"0.4.3"
+    using Base: promote_op, MulFun
+    Base.scale(A::AbstractMatrix, b::AbstractVector) = scale!(similar(A, promote_op(MulFun(),eltype(A),eltype(b))), A, b)
+    Base.scale(b::AbstractVector, A::AbstractMatrix) = scale!(similar(b, promote_op(MulFun(),eltype(b),eltype(A)), size(A)), b, A)
+end
+
 function Base.cholfact{T}(::Type{Positive{T}}, A::AbstractMatrix, pivot=Val{false}; tol=default_tol(A), blocksize=default_blocksize(T))
     size(A, 1) == size(A, 2) || throw(DimensionMismatch("A must be square"))
     A0 = Array(floattype(T), size(A))
@@ -163,11 +169,13 @@ end
 # Computes dest -= d*c*c', in the lower diagonal
 @inline function update_columns!{T<:BlasFloat}(dest::StridedMatrix{T}, d::Number, c::StridedVector{T})
     syr!('L', convert(T, -d), c, dest)
+    dest
 end
 
 # Computes dest -= d*x*y'
 @inline function update_columns!{T<:BlasFloat}(dest::StridedMatrix{T}, d::Number, x::StridedVector{T}, y::StridedVector{T})
     ger!(convert(T, -d), x, y, dest)
+    dest
 end
 
 # Computes dest -= C*diagm(d)*C', in the lower diagonal
@@ -183,11 +191,7 @@ function update_columns!{T<:BlasFloat}(dest::StridedMatrix{T}, d::AbstractVector
     if allsame
         syrk!('L', 'N', convert(T, -d1), C, one(T), dest)
     else
-        if VERSION < v"0.5"
-            Cd = scale(copy(C), copy(d))
-        else
-            Cd = scale(C, d)
-        end
+        Cd = scale(C, d)
         syr2k!('L', 'N', -one(T)/2, C, Cd, one(T), dest)
     end
     dest
