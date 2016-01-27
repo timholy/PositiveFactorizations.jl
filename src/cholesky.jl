@@ -153,7 +153,7 @@ function solve_columns_pivot!(A, d, piv, Ad, tol, jrange)
         else
             d[j] = 0
             A[j,j] = 1
-            f = zero(s)
+            f = zero(eltype(A))
         end
         for k = jmin:j-1
             @inbounds ck = d[k]*A[j,k]
