@@ -23,10 +23,11 @@ starting
 for justification; briefly, the idea of a small correction conflates
 large negative eigenvalues with numerical roundoff error, which (when
 stated that way) seems like a puzzling choice.  In contrast, this
-package provides methods that are closer in spirit to taking the
-absolute value of the eigenvalues (for a diagonal matrix, this would
-be twice the size of the correction in GMW81), and setting any "tiny"
-eigenvalues (those consistent with roundoff error) to 1.
+package provides methods that are largely equivalent to taking the
+absolute value of the diagonals D in an LDLT factorization, and setting
+any "tiny" diagonals (those consistent with roundoff error) to 1.  For
+a diagonal matrix with some entries negative, this results in
+approximately twice the correction used in GMW81.
 
 ## Usage
 
@@ -36,8 +37,27 @@ Given a symmetric matrix `H`, compute a positive factorization `F` like this:
 F = cholfact(Positive, H, [pivot=Val{false}])
 ```
 
-Pivoting (turned on with `Val{true}`) can make the correction smaller,
-but is not necessary for numeric stability.
+Pivoting (turned on with `Val{true}`) can make the correction smaller
+and increase accuracy, but is not necessary for existence or stability.
+
+For a little more information, call `ldltfact` instead:
+
+```jl
+F, d = ldltfact(Positive, H, [pivot=Val{false}])
+```
+
+`F` will be the same as for `cholfact`, but this also returns `d`, a
+vector of `Int8` with values +1, 0, or -1 indicating the sign of the
+diagonal as encountered during processing (so in order of rows/columns
+if not using pivoting, in order of pivot if using pivoting).  This
+output can be useful for determining whether the original matrix was
+already positive (semi)definite.
+
+Note that `cholfact`/`ldltfact` can be used with any matrix, even
+those which lack a conventional LDLT factorization.  For example, the
+matrix `[0 1; 1 0]` is factored as `L = eye(2)` (the identity matrix),
+with all entries of `d` being 0.  Symmetry is assumed but not checked;
+only the lower-triangle of the input is used.
 
 `cholfact` is recommended because it is very efficient.  A slower alternative is to use `eigfact`:
 

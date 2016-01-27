@@ -8,16 +8,22 @@ if VERSION < v"0.4.3"
     Base.scale(b::AbstractVector, A::AbstractMatrix) = scale!(similar(b, promote_op(MulFun(),eltype(b),eltype(A)), size(A)), b, A)
 end
 
-function Base.cholfact{T}(::Type{Positive{T}}, A::AbstractMatrix, pivot=Val{false}; tol=default_tol(A), blocksize=default_blocksize(T))
+Base.cholfact{T}(::Type{Positive{T}}, A::AbstractMatrix, pivot=Val{false}; tol=default_tol(A), blocksize=default_blocksize(T)) = ldltfact(Positive{T}, A, pivot; tol=tol, blocksize=blocksize)[1]
+Base.cholfact(::Type{Positive}, A::AbstractMatrix, pivot=Val{false}; tol=default_tol(A), blocksize=default_blocksize(floattype(eltype(A)))) = cholfact(Positive{floattype(eltype(A))}, A, pivot; tol=tol, blocksize=blocksize)
+
+function Base.ldltfact{T}(::Type{Positive{T}}, A::AbstractMatrix, pivot=Val{false}; tol=default_tol(A), blocksize=default_blocksize(T))
     size(A, 1) == size(A, 2) || throw(DimensionMismatch("A must be square"))
     A0 = Array(floattype(T), size(A))
     copy!(A0, A)
-    cholfact!(Positive{T}, A0, pivot; tol=tol, blocksize=blocksize)
+    ldltfact!(Positive{T}, A0, pivot; tol=tol, blocksize=blocksize)
 end
-Base.cholfact(::Type{Positive}, A::AbstractMatrix, pivot=Val{false}; tol=default_tol(A), blocksize=default_blocksize(floattype(eltype(A)))) = cholfact(Positive{floattype(eltype(A))}, A, pivot; tol=tol, blocksize=blocksize)
+Base.ldltfact(::Type{Positive}, A::AbstractMatrix, pivot=Val{false}; tol=default_tol(A), blocksize=default_blocksize(floattype(eltype(A)))) = ldltfact(Positive{floattype(eltype(A))}, A, pivot; tol=tol, blocksize=blocksize)
+
+Base.cholfact!{T<:AbstractFloat}(::Type{Positive{T}}, A::AbstractMatrix{T}, pivot=Val{false}; tol=default_tol(A), blocksize=default_blocksize(T)) = ldltfact!(Positive{T}, A, pivot; tol=tol, blocksize=blocksize)[1]
+Base.cholfact!{T<:AbstractFloat}(::Type{Positive}, A::AbstractMatrix{T}, pivot=Val{false}; tol=default_tol(A), blocksize=default_blocksize(T)) = cholfact!(Positive{T}, A; tol=tol, blocksize=blocksize)
 
 # Blocked, cache-friendly algorithm (unpivoted)
-function Base.cholfact!{T<:AbstractFloat}(::Type{Positive{T}}, A::AbstractMatrix{T}, pivot::Type{Val{false}}=Val{false}; tol=default_tol(A), blocksize=default_blocksize(T))
+function Base.ldltfact!{T<:AbstractFloat}(::Type{Positive{T}}, A::AbstractMatrix{T}, pivot::Type{Val{false}}=Val{false}; tol=default_tol(A), blocksize=default_blocksize(T))
     size(A,1) == size(A,2) || error("A must be square")
     eltype(A)<:Real || error("element type $(eltype(A)) not yet supported")
     K = size(A, 1)
@@ -42,11 +48,11 @@ function Base.cholfact!{T<:AbstractFloat}(::Type{Positive{T}}, A::AbstractMatrix
             update_columns!(B22, d1, B21)
         end
     end
-    Cholesky(A, :L)
+    Cholesky(A, :L), d
 end
 
 # Version with pivoting
-function Base.cholfact!{T<:AbstractFloat}(::Type{Positive{T}}, A::AbstractMatrix{T}, pivot::Type{Val{true}}; tol=default_tol(A), blocksize=default_blocksize(T))
+function Base.ldltfact!{T<:AbstractFloat}(::Type{Positive{T}}, A::AbstractMatrix{T}, pivot::Type{Val{true}}; tol=default_tol(A), blocksize=default_blocksize(T))
     size(A,1) == size(A,2) || error("A must be square")
     eltype(A)<:Real || error("element type $(eltype(A)) not yet supported")
     K = size(A, 1)
@@ -63,10 +69,10 @@ function Base.cholfact!{T<:AbstractFloat}(::Type{Positive{T}}, A::AbstractMatrix
             update_columns!(B22, d1, B21)
         end
     end
-    CholeskyPivoted(A, 'L', piv, K, tol, 0)
+    CholeskyPivoted(A, 'L', piv, K, tol, 0), d
 end
 
-Base.cholfact!{T<:AbstractFloat}(::Type{Positive}, A::AbstractMatrix{T}, pivot=Val{false}; tol=default_tol(A), blocksize=default_blocksize(T)) = cholfact!(Positive{T}, A; tol=tol, blocksize=blocksize)
+Base.ldltfact!{T<:AbstractFloat}(::Type{Positive}, A::AbstractMatrix{T}, pivot=Val{false}; tol=default_tol(A), blocksize=default_blocksize(T)) = ldltfact!(Positive{T}, A; tol=tol, blocksize=blocksize)
 
 
 function solve_diagonal!(B, d, tol)
