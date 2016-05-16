@@ -4,15 +4,15 @@
 
 ## Overview
 
-PositiveFactorizations is a package for computing a positive-definite
+PositiveFactorizations is a package for computing a positive definite
 matrix decomposition (factorization) from an arbitrary symmetric
 input.  The motivating application is optimization (Newton or
-quasi-Newton methods), in which the cannonical search direction `-H\g`
+quasi-Newton methods), in which the canonical search direction `-H\g`
 (`H` being the Hessian and `g` the gradient) may not be a descent
 direction if `H` is not positive definite.  This package provides an
 efficient approach to computing `-Htilde\g`, where `Htilde` is equal
-to `H` if `H` is positive-definite, and otherwise is a
-positive-definite matrix that is "spiritually like `H`."
+to `H` if `H` is positive definite, and otherwise is a
+positive definite matrix that is "spiritually like `H`."
 
 The approach favored here is different from the well-known
 Gill-Murray-Wright approach of computing the Cholesky factorization of
