@@ -38,13 +38,13 @@ function Base.ldltfact!{T<:AbstractFloat}(::Type{Positive{T}}, A::AbstractMatrix
         #       B21  |   B22
         #            |
         jend = min(K, j+blocksize-1)
-        B11 = sub(A, j:jend, j:jend)
-        d1 = sub(d, j:jend)
+        B11 = view(A, j:jend, j:jend)
+        d1 = view(d, j:jend)
         solve_diagonal!(B11, d1, tol)
         if jend < K
-            B21 = sub(A, jend+1:K, j:jend)
+            B21 = view(A, jend+1:K, j:jend)
             solve_columns!(B21, d1, B11)
-            B22 = sub(A, jend+1:K, jend+1:K)
+            B22 = view(A, jend+1:K, jend+1:K)
             update_columns!(B22, d1, B21)
         end
     end
@@ -63,9 +63,9 @@ function Base.ldltfact!{T<:AbstractFloat}(::Type{Positive{T}}, A::AbstractMatrix
         jend = min(K, j+blocksize-1)
         solve_columns_pivot!(A, d, piv, Ad, tol, j:jend)
         if jend < K
-            d1 = sub(d, j:jend)
-            B21 = sub(A, jend+1:K, j:jend)
-            B22 = sub(A, jend+1:K, jend+1:K)
+            d1 = view(d, j:jend)
+            B21 = view(A, jend+1:K, j:jend)
+            B22 = view(A, jend+1:K, jend+1:K)
             update_columns!(B22, d1, B21)
         end
     end
@@ -89,7 +89,7 @@ function solve_diagonal!(B, d, tol)
                 B[i,j] *= f
             end
             # subtract ℓ[j+1:end]⊗ℓ[j+1:end] from the lower right quadrant
-            update_columns!(sub(B, j+1:K, j+1:K), d[j], slice(B, j+1:K, j))
+            update_columns!(view(B, j+1:K, j+1:K), d[j], view(B, j+1:K, j))
         else
             # For the zero diagonals, replace them with 1. In a Newton step,
             # this corresponds to following the gradient (i.e., H = eye).
@@ -113,7 +113,7 @@ function solve_columns!(B21, d, B11)
         for i = 1:I
             B21[i,j] *= f
         end
-        update_columns!(sub(B21, :, j+1:J), dj, slice(B21, :, j), slice(B11, j+1:J, j))
+        update_columns!(view(B21, :, j+1:J), dj, view(B21, :, j), view(B11, j+1:J, j))
     end
     B21
 end
