@@ -89,7 +89,7 @@ function solve_diagonal!(B, d, tol)
                 B[i,j] *= f
             end
             # subtract ℓ[j+1:end]⊗ℓ[j+1:end] from the lower right quadrant
-            update_columns!(view(B, j+1:K, j+1:K), d[j], view(B, j+1:K, j))
+            update_columns!(sub(B, j+1:K, j+1:K), d[j], sub(B, j+1:K, j))
         else
             # For the zero diagonals, replace them with 1. In a Newton step,
             # this corresponds to following the gradient (i.e., H = eye).
@@ -113,7 +113,7 @@ function solve_columns!(B21, d, B11)
         for i = 1:I
             B21[i,j] *= f
         end
-        update_columns!(view(B21, :, j+1:J), dj, view(B21, :, j), view(B11, j+1:J, j))
+        update_columns!(sub(B21, :, j+1:J), dj, sub(B21, :, j), sub(B11, j+1:J, j))
     end
     B21
 end
