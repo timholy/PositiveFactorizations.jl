@@ -197,7 +197,7 @@ function update_columns!{T<:BlasFloat}(dest::StridedMatrix{T}, d::AbstractVector
     if allsame
         syrk!('L', 'N', convert(T, -d1), C, one(T), dest)
     else
-        Cd = scale(C, d)
+        Cd = C*Diagonal(d)
         syr2k!('L', 'N', -one(T)/2, C, Cd, one(T), dest)
     end
     dest
