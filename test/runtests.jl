@@ -48,3 +48,8 @@ F = eigfact(Positive, A)
 A = [1 0; 0 0]
 F = eigfact(Positive, A)
 @test_approx_eq full(F) eye(2)
+
+# Test whether necessary matrix operations are supported for SubArrays
+n = PositiveFactorizations.default_blocksize(Float64)
+B = rand(n+3,n+4); C = rand(size(B)...); A = B'*B - C'*C
+ldltfact!(Positive, A)
