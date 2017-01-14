@@ -7,17 +7,6 @@ if VERSION < v"0.4.3"
     Base.scale(A::AbstractMatrix, b::AbstractVector) = scale!(similar(A, promote_op(MulFun(),eltype(A),eltype(b))), A, b)
     Base.scale(b::AbstractVector, A::AbstractMatrix) = scale!(similar(b, promote_op(MulFun(),eltype(b),eltype(A)), size(A)), b, A)
 end
-if VERSION < v"0.5.0-dev+1450"
-    Base.Diagonal(v::AbstractVector) = Diagonal(collect(v))
-end
-if VERSION < v"0.5.0-dev+3669"
-    using Base: promote_op
-    typealias SubMatrix{T} SubArray{T,2}
-    (*)(A::SubMatrix, D::Diagonal) =
-        scale!(similar(A, promote_op(*, eltype(A), eltype(D.diag))), A, D.diag)
-    (*)(D::Diagonal, A::SubMatrix) =
-        scale!(similar(A, promote_op(*, eltype(A), eltype(D.diag))), D.diag, A)
-end
 
 Base.cholfact{T}(::Type{Positive{T}}, A::AbstractMatrix, pivot=Val{false}; tol=default_tol(A), blocksize=default_blocksize(T)) = ldltfact(Positive{T}, A, pivot; tol=tol, blocksize=blocksize)[1]
 Base.cholfact(::Type{Positive}, A::AbstractMatrix, pivot=Val{false}; tol=default_tol(A), blocksize=default_blocksize(floattype(eltype(A)))) = cholfact(Positive{floattype(eltype(A))}, A, pivot; tol=tol, blocksize=blocksize)
