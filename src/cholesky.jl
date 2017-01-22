@@ -13,7 +13,7 @@ Base.cholfact(::Type{Positive}, A::AbstractMatrix, pivot=Val{false}; tol=default
 
 function Base.ldltfact{T}(::Type{Positive{T}}, A::AbstractMatrix, pivot=Val{false}; tol=default_tol(A), blocksize=default_blocksize(T))
     size(A, 1) == size(A, 2) || throw(DimensionMismatch("A must be square"))
-    A0 = Array(floattype(T), size(A))
+    @compat A0 = Array{floattype(T)}(size(A))
     copy!(A0, A)
     ldltfact!(Positive{T}, A0, pivot; tol=tol, blocksize=blocksize)
 end
@@ -27,7 +27,7 @@ function Base.ldltfact!{T<:AbstractFloat}(::Type{Positive{T}}, A::AbstractMatrix
     size(A,1) == size(A,2) || error("A must be square")
     eltype(A)<:Real || error("element type $(eltype(A)) not yet supported")
     K = size(A, 1)
-    d = Array(Int8, K)
+    @compat d = Array{Int8}(K)
     for j = 1:blocksize:K
         # Split A into
         #            |
@@ -56,7 +56,7 @@ function Base.ldltfact!{T<:AbstractFloat}(::Type{Positive{T}}, A::AbstractMatrix
     size(A,1) == size(A,2) || error("A must be square")
     eltype(A)<:Real || error("element type $(eltype(A)) not yet supported")
     K = size(A, 1)
-    d = Array(Int8, K)
+    @compat d = Array{Int8}(K)
     piv = convert(Vector{BlasInt}, 1:K)
     Ad = diag(A)
     for j = 1:blocksize:K
@@ -268,5 +268,5 @@ floattype{T<:Integer}(::Type{T}) = Float64
 const cachesize = 2^15
 
 default_δ(A) = 10 * size(A, 1) * eps(floattype(real(eltype(A))))
-default_tol(A) = default_δ(A) * maxabs(A)
+@compat default_tol(A) = default_δ(A) * maximum(abs,A)
 default_blocksize{T}(::Type{T}) = max(4, floor(Int, sqrt(cachesize/sizeof(T)/4)))
