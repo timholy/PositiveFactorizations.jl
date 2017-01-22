@@ -45,7 +45,11 @@ end
 
 A = [1 0; 0 -2]
 F = eigfact(Positive, A)
-@test @compat full(F) ≈ abs.(A)
+if VERSION < v"v0.5-"
+    @test_approx_eq full(F) abs(A)
+else
+    @test full(F) ≈ abs.(A)
+end
 A = [1 0; 0 0]
 F = eigfact(Positive, A)
 @test @compat full(F) ≈ eye(2)
