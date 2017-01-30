@@ -45,7 +45,7 @@ end
 
 A = [1 0; 0 -2]
 F = eigfact(Positive, A)
-if isdefined(≈)
+if isdefined(:≈)
     @test full(F) ≈ abs.(A)
 else
     @test_approx_eq full(F) abs(A)
