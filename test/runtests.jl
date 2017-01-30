@@ -45,10 +45,11 @@ end
 
 A = [1 0; 0 -2]
 F = eigfact(Positive, A)
-if VERSION < v"v0.5-"
-    @test_approx_eq full(F) abs(A)
-else
+if isdefined(≈)
     @test full(F) ≈ abs.(A)
+
+else
+    @test_approx_eq full(F) abs(A)
 end
 A = [1 0; 0 0]
 F = eigfact(Positive, A)
