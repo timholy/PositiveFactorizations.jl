@@ -45,11 +45,13 @@ end
 
 A = [1 0; 0 -2]
 F = eigfact(Positive, A)
-if isdefined(:≈)
-    @test full(F) ≈ abs.(A)
-else
-    @test_approx_eq full(F) abs(A)
-end
+
+# TODO: Use this when we drop v0.4 support
+# @test @compat full(F) ≈ abs.(A)
+@compat absA = abs.(A)
+absA = convert(Array{Int}, absA) # v0.4 fix
+@test @compat full(F) ≈ absA
+
 A = [1 0; 0 0]
 F = eigfact(Positive, A)
 @test @compat full(F) ≈ eye(2)
