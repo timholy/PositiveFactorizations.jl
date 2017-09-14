@@ -48,7 +48,11 @@ function Base.ldltfact!{T<:AbstractFloat}(::Type{Positive{T}}, A::AbstractMatrix
             update_columns!(B22, d1, B21)
         end
     end
-    Cholesky(A, :L), d
+    @static if VERSION >= v"0.7.0-DEV.393"
+        return Cholesky(A, :L, BLAS.BlasInt(0)), d
+    else
+        return Cholesky(A, :L), d
+    end
 end
 
 # Version with pivoting
@@ -69,7 +73,7 @@ function Base.ldltfact!{T<:AbstractFloat}(::Type{Positive{T}}, A::AbstractMatrix
             update_columns!(B22, d1, B21)
         end
     end
-    CholeskyPivoted(A, 'L', piv, K, tol, 0), d
+    CholeskyPivoted(A, 'L', piv, BLAS.BlasInt(K), tol, BLAS.BlasInt(0)), d
 end
 
 Base.ldltfact!{T<:AbstractFloat}(::Type{Positive}, A::AbstractMatrix{T}, pivot=Val{false}; tol=default_tol(A), blocksize=default_blocksize(T)) = ldltfact!(Positive{T}, A; tol=tol, blocksize=blocksize)
