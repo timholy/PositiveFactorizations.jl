@@ -4,10 +4,11 @@ module PositiveFactorizations
 
 using Compat
 using Compat.view
+using Compat.LinearAlgebra
 
 export Positive
 
-immutable Positive{T<:Real} end
+struct Positive{T<:Real} end
 
 include("cholesky.jl")
 include("eig.jl")

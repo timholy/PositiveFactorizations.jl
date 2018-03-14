@@ -1,6 +1,6 @@
 import Base: *, \, unsafe_getindex
-using Base.BLAS: syr!, ger!, syrk!, syr2k!
-using Base.LinAlg: BlasInt, BlasFloat, Cholesky, CholeskyPivoted
+using Compat.LinearAlgebra.BLAS: syr!, ger!, syrk!, syr2k!
+using Compat.LinearAlgebra: BlasInt, BlasFloat, Cholesky, CholeskyPivoted
 
 if VERSION < v"0.4.3"
     using Base: promote_op, MulFun
@@ -8,22 +8,22 @@ if VERSION < v"0.4.3"
     Base.scale(b::AbstractVector, A::AbstractMatrix) = scale!(similar(b, promote_op(MulFun(),eltype(b),eltype(A)), size(A)), b, A)
 end
 
-Base.cholfact{T}(::Type{Positive{T}}, A::AbstractMatrix, pivot=Val{false}; tol=default_tol(A), blocksize=default_blocksize(T)) = ldltfact(Positive{T}, A, pivot; tol=tol, blocksize=blocksize)[1]
-Base.cholfact(::Type{Positive}, A::AbstractMatrix, pivot=Val{false}; tol=default_tol(A), blocksize=default_blocksize(floattype(eltype(A)))) = cholfact(Positive{floattype(eltype(A))}, A, pivot; tol=tol, blocksize=blocksize)
+LinearAlgebra.cholfact(::Type{Positive{T}}, A::AbstractMatrix, pivot=Val{false}; tol=default_tol(A), blocksize=default_blocksize(T)) where {T} = ldltfact(Positive{T}, A, pivot; tol=tol, blocksize=blocksize)[1]
+LinearAlgebra.cholfact(::Type{Positive}, A::AbstractMatrix, pivot=Val{false}; tol=default_tol(A), blocksize=default_blocksize(floattype(eltype(A)))) = cholfact(Positive{floattype(eltype(A))}, A, pivot; tol=tol, blocksize=blocksize)
 
-function Base.ldltfact{T}(::Type{Positive{T}}, A::AbstractMatrix, pivot=Val{false}; tol=default_tol(A), blocksize=default_blocksize(T))
+function LinearAlgebra.ldltfact(::Type{Positive{T}}, A::AbstractMatrix, pivot=Val{false}; tol=default_tol(A), blocksize=default_blocksize(T)) where {T}
     size(A, 1) == size(A, 2) || throw(DimensionMismatch("A must be square"))
     @compat A0 = Array{floattype(T)}(size(A))
     copy!(A0, A)
     ldltfact!(Positive{T}, A0, pivot; tol=tol, blocksize=blocksize)
 end
-Base.ldltfact(::Type{Positive}, A::AbstractMatrix, pivot=Val{false}; tol=default_tol(A), blocksize=default_blocksize(floattype(eltype(A)))) = ldltfact(Positive{floattype(eltype(A))}, A, pivot; tol=tol, blocksize=blocksize)
+LinearAlgebra.ldltfact(::Type{Positive}, A::AbstractMatrix, pivot=Val{false}; tol=default_tol(A), blocksize=default_blocksize(floattype(eltype(A)))) = ldltfact(Positive{floattype(eltype(A))}, A, pivot; tol=tol, blocksize=blocksize)
 
-Base.cholfact!{T<:AbstractFloat}(::Type{Positive{T}}, A::AbstractMatrix{T}, pivot=Val{false}; tol=default_tol(A), blocksize=default_blocksize(T)) = ldltfact!(Positive{T}, A, pivot; tol=tol, blocksize=blocksize)[1]
-Base.cholfact!{T<:AbstractFloat}(::Type{Positive}, A::AbstractMatrix{T}, pivot=Val{false}; tol=default_tol(A), blocksize=default_blocksize(T)) = cholfact!(Positive{T}, A; tol=tol, blocksize=blocksize)
+LinearAlgebra.cholfact!(::Type{Positive{T}}, A::AbstractMatrix{T}, pivot=Val{false}; tol=default_tol(A), blocksize=default_blocksize(T)) where {T<:AbstractFloat} = ldltfact!(Positive{T}, A, pivot; tol=tol, blocksize=blocksize)[1]
+LinearAlgebra.cholfact!(::Type{Positive}, A::AbstractMatrix{T}, pivot=Val{false}; tol=default_tol(A), blocksize=default_blocksize(T)) where {T<:AbstractFloat} = cholfact!(Positive{T}, A; tol=tol, blocksize=blocksize)
 
 # Blocked, cache-friendly algorithm (unpivoted)
-function Base.ldltfact!{T<:AbstractFloat}(::Type{Positive{T}}, A::AbstractMatrix{T}, pivot::Type{Val{false}}=Val{false}; tol=default_tol(A), blocksize=default_blocksize(T))
+function LinearAlgebra.ldltfact!(::Type{Positive{T}}, A::AbstractMatrix{T}, pivot::Type{Val{false}}=Val{false}; tol=default_tol(A), blocksize=default_blocksize(T)) where {T<:AbstractFloat}
     size(A,1) == size(A,2) || error("A must be square")
     eltype(A)<:Real || error("element type $(eltype(A)) not yet supported")
     K = size(A, 1)
@@ -56,7 +56,7 @@ function Base.ldltfact!{T<:AbstractFloat}(::Type{Positive{T}}, A::AbstractMatrix
 end
 
 # Version with pivoting
-function Base.ldltfact!{T<:AbstractFloat}(::Type{Positive{T}}, A::AbstractMatrix{T}, pivot::Type{Val{true}}; tol=default_tol(A), blocksize=default_blocksize(T))
+function LinearAlgebra.ldltfact!(::Type{Positive{T}}, A::AbstractMatrix{T}, pivot::Type{Val{true}}; tol=default_tol(A), blocksize=default_blocksize(T)) where {T<:AbstractFloat}
     size(A,1) == size(A,2) || error("A must be square")
     eltype(A)<:Real || error("element type $(eltype(A)) not yet supported")
     K = size(A, 1)
@@ -76,7 +76,7 @@ function Base.ldltfact!{T<:AbstractFloat}(::Type{Positive{T}}, A::AbstractMatrix
     CholeskyPivoted(A, 'L', piv, BLAS.BlasInt(K), tol, BLAS.BlasInt(0)), d
 end
 
-Base.ldltfact!{T<:AbstractFloat}(::Type{Positive}, A::AbstractMatrix{T}, pivot=Val{false}; tol=default_tol(A), blocksize=default_blocksize(T)) = ldltfact!(Positive{T}, A; tol=tol, blocksize=blocksize)
+LinearAlgebra.ldltfact!(::Type{Positive}, A::AbstractMatrix{T}, pivot=Val{false}; tol=default_tol(A), blocksize=default_blocksize(T)) where {T<:AbstractFloat} = ldltfact!(Positive{T}, A; tol=tol, blocksize=blocksize)
 
 
 function solve_diagonal!(B, d, tol)
@@ -177,19 +177,19 @@ function solve_columns_pivot!(A, d, piv, Ad, tol, jrange)
 end
 
 # Computes dest -= d*c*c', in the lower diagonal
-@inline function update_columns!{T<:BlasFloat}(dest::StridedMatrix{T}, d::Number, c::StridedVector{T})
+@inline function update_columns!(dest::StridedMatrix{T}, d::Number, c::StridedVector{T}) where {T<:BlasFloat}
     syr!('L', convert(T, -d), c, dest)
     dest
 end
 
 # Computes dest -= d*x*y'
-@inline function update_columns!{T<:BlasFloat}(dest::StridedMatrix{T}, d::Number, x::StridedVector{T}, y::StridedVector{T})
+@inline function update_columns!(dest::StridedMatrix{T}, d::Number, x::StridedVector{T}, y::StridedVector{T}) where {T<:BlasFloat}
     ger!(convert(T, -d), x, y, dest)
     dest
 end
 
 # Computes dest -= C*diagm(d)*C', in the lower diagonal
-function update_columns!{T<:BlasFloat}(dest::StridedMatrix{T}, d::AbstractVector, C::StridedMatrix{T})
+function update_columns!(dest::StridedMatrix{T}, d::AbstractVector, C::StridedMatrix{T}) where {T<:BlasFloat}
     isempty(d) && return dest
     # If d is homogeneous, we can use syr rather than syr2
     allsame = true
@@ -266,11 +266,11 @@ function pivot!(A, i::Integer, j::Integer)
     A
 end
 
-floattype{T<:AbstractFloat}(::Type{T}) = T
-floattype{T<:Integer}(::Type{T}) = Float64
+floattype(::Type{T}) where {T<:AbstractFloat} = T
+floattype(::Type{T}) where {T<:Integer} = Float64
 
 const cachesize = 2^15
 
 default_δ(A) = 10 * size(A, 1) * eps(floattype(real(eltype(A))))
 @compat default_tol(A) = default_δ(A) * maximum(abs,A)
-default_blocksize{T}(::Type{T}) = max(4, floor(Int, sqrt(cachesize/sizeof(T)/4)))
+default_blocksize(::Type{T}) where {T} = max(4, floor(Int, sqrt(cachesize/sizeof(T)/4)))
