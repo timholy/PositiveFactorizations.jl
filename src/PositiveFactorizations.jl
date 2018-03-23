@@ -3,7 +3,7 @@ __precompile__()
 module PositiveFactorizations
 
 using Compat
-using Compat.view
+using Compat: view
 using Compat.LinearAlgebra
 
 export Positive

@@ -13,8 +13,8 @@ LinearAlgebra.cholfact(::Type{Positive}, A::AbstractMatrix, pivot=Val{false}; to
 
 function LinearAlgebra.ldltfact(::Type{Positive{T}}, A::AbstractMatrix, pivot=Val{false}; tol=default_tol(A), blocksize=default_blocksize(T)) where {T}
     size(A, 1) == size(A, 2) || throw(DimensionMismatch("A must be square"))
-    @compat A0 = Array{floattype(T)}(size(A))
-    copy!(A0, A)
+    @compat A0 = Array{floattype(T)}(undef, size(A))
+    copyto!(A0, A)
     ldltfact!(Positive{T}, A0, pivot; tol=tol, blocksize=blocksize)
 end
 LinearAlgebra.ldltfact(::Type{Positive}, A::AbstractMatrix, pivot=Val{false}; tol=default_tol(A), blocksize=default_blocksize(floattype(eltype(A)))) = ldltfact(Positive{floattype(eltype(A))}, A, pivot; tol=tol, blocksize=blocksize)
@@ -27,7 +27,7 @@ function LinearAlgebra.ldltfact!(::Type{Positive{T}}, A::AbstractMatrix{T}, pivo
     size(A,1) == size(A,2) || error("A must be square")
     eltype(A)<:Real || error("element type $(eltype(A)) not yet supported")
     K = size(A, 1)
-    @compat d = Array{Int8}(K)
+    @compat d = Array{Int8}(undef, K)
     for j = 1:blocksize:K
         # Split A into
         #            |
@@ -60,7 +60,7 @@ function LinearAlgebra.ldltfact!(::Type{Positive{T}}, A::AbstractMatrix{T}, pivo
     size(A,1) == size(A,2) || error("A must be square")
     eltype(A)<:Real || error("element type $(eltype(A)) not yet supported")
     K = size(A, 1)
-    @compat d = Array{Int8}(K)
+    @compat d = Array{Int8}(undef, K)
     piv = convert(Vector{BlasInt}, 1:K)
     Ad = diag(A)
     for j = 1:blocksize:K
