@@ -1,8 +1,8 @@
-using Compat.LinearAlgebra: Eigen
-import Compat.LinearAlgebra: eigfact
+using LinearAlgebra: Eigen
+import LinearAlgebra: eigen
 
-function eigfact(::Type{Positive{T}}, A::AbstractMatrix{T}, args...; tol=default_tol(A)) where {T}
-    F = eigfact(A, args...)
+function eigen(::Type{Positive{T}}, A::AbstractMatrix{T}, args...; tol=default_tol(A)) where {T}
+    F = eigen(A, args...)
     for i = 1:size(A,1)
         tmp = abs(F.values[i])
         if tmp < tol
@@ -12,5 +12,5 @@ function eigfact(::Type{Positive{T}}, A::AbstractMatrix{T}, args...; tol=default
     end
     F
 end
-eigfact(::Type{Positive}, A::AbstractMatrix, args...; tol=default_tol(A)) = eigfact(Positive{floattype(eltype(A))}, A, args...; tol=tol)
-eigfact(::Type{Positive{T}}, A::AbstractMatrix, args...; tol=default_tol(A)) where {T} = eigfact(Positive{T}, convert(Matrix{T}, A), args...; tol=tol)
+eigen(::Type{Positive}, A::AbstractMatrix, args...; tol=default_tol(A)) = eigen(Positive{floattype(eltype(A))}, A, args...; tol=tol)
+eigen(::Type{Positive{T}}, A::AbstractMatrix, args...; tol=default_tol(A)) where {T} = eigen(Positive{T}, convert(Matrix{T}, A), args...; tol=tol)

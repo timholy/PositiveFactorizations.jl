@@ -1,10 +1,6 @@
-__precompile__()
-
 module PositiveFactorizations
 
-using Compat
-using Compat: view
-using Compat.LinearAlgebra
+using LinearAlgebra
 
 export Positive
 
