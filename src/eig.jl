@@ -1,7 +1,8 @@
-using Base.LinAlg: Eigen
+using LinearAlgebra: Eigen
+import LinearAlgebra: eigen
 
-function Base.eigfact{T}(::Type{Positive{T}}, A::AbstractMatrix{T}, args...; tol=default_tol(A))
-    F = eigfact(A, args...)
+function eigen(::Type{Positive{T}}, A::AbstractMatrix{T}, args...; tol=default_tol(A)) where {T}
+    F = eigen(A, args...)
     for i = 1:size(A,1)
         tmp = abs(F.values[i])
         if tmp < tol
@@ -11,5 +12,5 @@ function Base.eigfact{T}(::Type{Positive{T}}, A::AbstractMatrix{T}, args...; tol
     end
     F
 end
-Base.eigfact(::Type{Positive}, A::AbstractMatrix, args...; tol=default_tol(A)) = eigfact(Positive{floattype(eltype(A))}, A, args...; tol=tol)
-Base.eigfact{T}(::Type{Positive{T}}, A::AbstractMatrix, args...; tol=default_tol(A)) = eigfact(Positive{T}, convert(Matrix{T}, A), args...; tol=tol)
+eigen(::Type{Positive}, A::AbstractMatrix, args...; tol=default_tol(A)) = eigen(Positive{floattype(eltype(A))}, A, args...; tol=tol)
+eigen(::Type{Positive{T}}, A::AbstractMatrix, args...; tol=default_tol(A)) where {T} = eigen(Positive{T}, convert(Matrix{T}, A), args...; tol=tol)

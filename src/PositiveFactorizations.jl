@@ -1,13 +1,10 @@
-__precompile__()
-
 module PositiveFactorizations
 
-using Compat
-using Compat.view
+using LinearAlgebra
 
 export Positive
 
-immutable Positive{T<:Real} end
+struct Positive{T<:Real} end
 
 include("cholesky.jl")
 include("eig.jl")
