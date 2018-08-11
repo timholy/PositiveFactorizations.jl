@@ -3,41 +3,41 @@ using LinearAlgebra, Test
 
 for pivot in (Val{false}, Val{true})
     A = [1 0; 0 1]
-    F = cholfact(Positive, A, pivot)
+    F = cholesky(Positive, A, pivot)
     @test Matrix(F) ≈ A
-    F, d = ldltfact(Positive, A, pivot)
+    F, d = ldlt(Positive, A, pivot)
     @test Matrix(F) ≈ A
     @test d == [1,1]
 
     A = [1 0; 0 -1]
-    F = cholfact(Positive, A, pivot)
+    F = cholesky(Positive, A, pivot)
     @test Matrix(F) ≈ Matrix(1.0I,2,2)
-    F, d = ldltfact(Positive, A, pivot)
+    F, d = ldlt(Positive, A, pivot)
     @test Matrix(F) ≈ Matrix(1.0I,2,2)
     @test d == [1,-1]
 
     A = [-1 0.5; 0.5 4]
     target = pivot == Val{false} ? [1 -0.5; -0.5 4.5] : [1.125 0.5; 0.5 4]
     dtarget = pivot == Val{false} ? [-1,1] : [1,-1]
-    F = cholfact(Positive, A, pivot)
+    F = cholesky(Positive, A, pivot)
     @test Matrix(F) ≈ target
-    F = cholfact(Positive, 10*A, pivot)
+    F = cholesky(Positive, 10*A, pivot)
     @test Matrix(F) ≈ 10*target
-    F, d = ldltfact(Positive, A, pivot)
+    F, d = ldlt(Positive, A, pivot)
     @test Matrix(F) ≈ target
     @test d == dtarget
 
     A = [0 1; 1 0]
-    F = cholfact(Positive, A, pivot)
+    F = cholesky(Positive, A, pivot)
     @test Matrix(F) ≈ Matrix(1.0I,2,2)
-    F, d = ldltfact(Positive, A, pivot)
+    F, d = ldlt(Positive, A, pivot)
     @test Matrix(F) ≈ Matrix(1.0I,2,2)
     @test d == [0,0]
 
     A = rand(201,200); A = A'*A
-    F = cholfact(Positive, A, pivot)
+    F = cholesky(Positive, A, pivot)
     @test Matrix(F) ≈ A
-    F, d = ldltfact(Positive, A, pivot)
+    F, d = ldlt(Positive, A, pivot)
     @test Matrix(F) ≈ A
     @test all(d .== 1)
 end
@@ -58,4 +58,4 @@ F = eigen(Positive, A)
 # Test whether necessary matrix operations are supported for SubArrays
 n = PositiveFactorizations.default_blocksize(Float64)
 B = rand(n+3,n+4); C = rand(size(B)...); A = B'*B - C'*C
-ldltfact!(Positive, A)
+ldlt!(Positive, A)
