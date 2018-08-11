@@ -1,30 +1,24 @@
 import Base: *, \, unsafe_getindex
 using LinearAlgebra.BLAS: syr!, ger!, syrk!, syr2k!
 using LinearAlgebra: BlasInt, BlasFloat, Cholesky, CholeskyPivoted
-import LinearAlgebra: cholfact, cholfact!, ldltfact, ldltfact!
+import LinearAlgebra: cholesky, cholesky!, ldlt, ldlt!
 
-if VERSION < v"0.4.3"
-    using Base: promote_op, MulFun
-    Base.scale(A::AbstractMatrix, b::AbstractVector) = scale!(similar(A, promote_op(MulFun(),eltype(A),eltype(b))), A, b)
-    Base.scale(b::AbstractVector, A::AbstractMatrix) = scale!(similar(b, promote_op(MulFun(),eltype(b),eltype(A)), size(A)), b, A)
-end
+cholesky(::Type{Positive{T}}, A::AbstractMatrix, pivot=Val{false}; tol=default_tol(A), blocksize=default_blocksize(T)) where {T} = ldlt(Positive{T}, A, pivot; tol=tol, blocksize=blocksize)[1]
+cholesky(::Type{Positive}, A::AbstractMatrix, pivot=Val{false}; tol=default_tol(A), blocksize=default_blocksize(floattype(eltype(A)))) = cholesky(Positive{floattype(eltype(A))}, A, pivot; tol=tol, blocksize=blocksize)
 
-cholfact(::Type{Positive{T}}, A::AbstractMatrix, pivot=Val{false}; tol=default_tol(A), blocksize=default_blocksize(T)) where {T} = ldltfact(Positive{T}, A, pivot; tol=tol, blocksize=blocksize)[1]
-cholfact(::Type{Positive}, A::AbstractMatrix, pivot=Val{false}; tol=default_tol(A), blocksize=default_blocksize(floattype(eltype(A)))) = cholfact(Positive{floattype(eltype(A))}, A, pivot; tol=tol, blocksize=blocksize)
-
-function ldltfact(::Type{Positive{T}}, A::AbstractMatrix, pivot=Val{false}; tol=default_tol(A), blocksize=default_blocksize(T)) where {T}
+function ldlt(::Type{Positive{T}}, A::AbstractMatrix, pivot=Val{false}; tol=default_tol(A), blocksize=default_blocksize(T)) where {T}
     size(A, 1) == size(A, 2) || throw(DimensionMismatch("A must be square"))
     A0 = Array{floattype(T)}(undef, size(A))
     copyto!(A0, A)
-    ldltfact!(Positive{T}, A0, pivot; tol=tol, blocksize=blocksize)
+    ldlt!(Positive{T}, A0, pivot; tol=tol, blocksize=blocksize)
 end
-ldltfact(::Type{Positive}, A::AbstractMatrix, pivot=Val{false}; tol=default_tol(A), blocksize=default_blocksize(floattype(eltype(A)))) = ldltfact(Positive{floattype(eltype(A))}, A, pivot; tol=tol, blocksize=blocksize)
+ldlt(::Type{Positive}, A::AbstractMatrix, pivot=Val{false}; tol=default_tol(A), blocksize=default_blocksize(floattype(eltype(A)))) = ldlt(Positive{floattype(eltype(A))}, A, pivot; tol=tol, blocksize=blocksize)
 
-cholfact!(::Type{Positive{T}}, A::AbstractMatrix{T}, pivot=Val{false}; tol=default_tol(A), blocksize=default_blocksize(T)) where {T<:AbstractFloat} = ldltfact!(Positive{T}, A, pivot; tol=tol, blocksize=blocksize)[1]
-cholfact!(::Type{Positive}, A::AbstractMatrix{T}, pivot=Val{false}; tol=default_tol(A), blocksize=default_blocksize(T)) where {T<:AbstractFloat} = cholfact!(Positive{T}, A; tol=tol, blocksize=blocksize)
+cholesky!(::Type{Positive{T}}, A::AbstractMatrix{T}, pivot=Val{false}; tol=default_tol(A), blocksize=default_blocksize(T)) where {T<:AbstractFloat} = ldlt!(Positive{T}, A, pivot; tol=tol, blocksize=blocksize)[1]
+cholesky!(::Type{Positive}, A::AbstractMatrix{T}, pivot=Val{false}; tol=default_tol(A), blocksize=default_blocksize(T)) where {T<:AbstractFloat} = cholesky!(Positive{T}, A; tol=tol, blocksize=blocksize)
 
 # Blocked, cache-friendly algorithm (unpivoted)
-function ldltfact!(::Type{Positive{T}}, A::AbstractMatrix{T}, pivot::Type{Val{false}}=Val{false}; tol=default_tol(A), blocksize=default_blocksize(T)) where {T<:AbstractFloat}
+function ldlt!(::Type{Positive{T}}, A::AbstractMatrix{T}, pivot::Type{Val{false}}=Val{false}; tol=default_tol(A), blocksize=default_blocksize(T)) where {T<:AbstractFloat}
     size(A,1) == size(A,2) || error("A must be square")
     eltype(A)<:Real || error("element type $(eltype(A)) not yet supported")
     K = size(A, 1)
@@ -57,7 +51,7 @@ function ldltfact!(::Type{Positive{T}}, A::AbstractMatrix{T}, pivot::Type{Val{fa
 end
 
 # Version with pivoting
-function ldltfact!(::Type{Positive{T}}, A::AbstractMatrix{T}, pivot::Type{Val{true}}; tol=default_tol(A), blocksize=default_blocksize(T)) where {T<:AbstractFloat}
+function ldlt!(::Type{Positive{T}}, A::AbstractMatrix{T}, pivot::Type{Val{true}}; tol=default_tol(A), blocksize=default_blocksize(T)) where {T<:AbstractFloat}
     size(A,1) == size(A,2) || error("A must be square")
     eltype(A)<:Real || error("element type $(eltype(A)) not yet supported")
     K = size(A, 1)
@@ -77,7 +71,7 @@ function ldltfact!(::Type{Positive{T}}, A::AbstractMatrix{T}, pivot::Type{Val{tr
     CholeskyPivoted(A, 'L', piv, BLAS.BlasInt(K), tol, BLAS.BlasInt(0)), d
 end
 
-ldltfact!(::Type{Positive}, A::AbstractMatrix{T}, pivot=Val{false}; tol=default_tol(A), blocksize=default_blocksize(T)) where {T<:AbstractFloat} = ldltfact!(Positive{T}, A; tol=tol, blocksize=blocksize)
+ldlt!(::Type{Positive}, A::AbstractMatrix{T}, pivot=Val{false}; tol=default_tol(A), blocksize=default_blocksize(T)) where {T<:AbstractFloat} = ldlt!(Positive{T}, A; tol=tol, blocksize=blocksize)
 
 
 function solve_diagonal!(B, d, tol)
