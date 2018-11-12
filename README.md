@@ -34,7 +34,7 @@ approximately twice the correction used in GMW81.
 Given a symmetric matrix `H`, compute a positive factorization `F` like this:
 
 ```jl
-F = cholfact(Positive, H, [pivot=Val{false}])
+F = cholesky(Positive, H, [pivot=Val{false}])
 ```
 
 Pivoting (turned on with `Val{true}`) can make the correction smaller
@@ -43,26 +43,26 @@ and increase accuracy, but is not necessary for existence or stability.
 For a little more information, call `ldltfact` instead:
 
 ```jl
-F, d = ldltfact(Positive, H, [pivot=Val{false}])
+F, d = ldlt(Positive, H, [pivot=Val{false}])
 ```
 
-`F` will be the same as for `cholfact`, but this also returns `d`, a
+`F` will be the same as for `cholesky`, but this also returns `d`, a
 vector of `Int8` with values +1, 0, or -1 indicating the sign of the
 diagonal as encountered during processing (so in order of rows/columns
 if not using pivoting, in order of pivot if using pivoting).  This
 output can be useful for determining whether the original matrix was
 already positive (semi)definite.
 
-Note that `cholfact`/`ldltfact` can be used with any matrix, even
+Note that `cholesky`/`ldlt` can be used with any matrix, even
 those which lack a conventional LDLT factorization.  For example, the
-matrix `[0 1; 1 0]` is factored as `L = eye(2)` (the identity matrix),
+matrix `[0 1; 1 0]` is factored as `L = [1 0; 0 1]` (the identity matrix),
 with all entries of `d` being 0.  Symmetry is assumed but not checked;
 only the lower-triangle of the input is used.
 
-`cholfact` is recommended because it is very efficient.  A slower alternative is to use `eigfact`:
+`cholesky` is recommended because it is very efficient.  A slower alternative is to use `eigen`:
 
 ```jl
-F = eigfact(Positive, H)
+F = eigen(Positive, H)
 ```
 
 which may be easier to reason about from the standpoint of fundamental linear algebra.
