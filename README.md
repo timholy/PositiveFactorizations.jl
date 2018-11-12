@@ -40,7 +40,7 @@ F = cholesky(Positive, H, [pivot=Val{false}])
 Pivoting (turned on with `Val{true}`) can make the correction smaller
 and increase accuracy, but is not necessary for existence or stability.
 
-For a little more information, call `ldltfact` instead:
+For a little more information, call `ldlt` instead:
 
 ```jl
 F, d = ldlt(Positive, H, [pivot=Val{false}])
