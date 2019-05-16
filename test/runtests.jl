@@ -1,6 +1,7 @@
 using PositiveFactorizations
 using LinearAlgebra, Test
 
+@testset "PositiveFactorizations" begin
 for pivot in (Val{false}, Val{true})
     A = [1 0; 0 1]
     F = cholesky(Positive, A, pivot)
@@ -59,3 +60,4 @@ F = eigen(Positive, A)
 n = PositiveFactorizations.default_blocksize(Float64)
 B = rand(n+3,n+4); C = rand(size(B)...); A = B'*B - C'*C
 ldlt!(Positive, A)
+end   # @testset

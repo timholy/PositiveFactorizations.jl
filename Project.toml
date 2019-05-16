@@ -1,0 +1,11 @@
+name = "PositiveFactorizations"
+uuid = "85a6dd25-e78a-55b7-8502-1745935b8125"
+author = ["Tim Holy <tim.holy@gmail.com"]
+version = "0.2.2"
+
+[deps]
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[compat]
+julia = "0.7, 1"
