@@ -41,6 +41,11 @@ for pivot in (Val{false}, Val{true})
     F, d = ldlt(Positive, A, pivot)
     @test Matrix(F) ≈ A
     @test all(d .== 1)
+
+    # factorization of (not too small) BigFloat matrices passes
+    a = BigFloat.(1:15); A = a * a'
+    F = cholesky(Positive, A, pivot)
+    F, d = ldlt(Positive, A, pivot)
 end
 
 A = [1 0; 0 -2]

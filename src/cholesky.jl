@@ -230,7 +230,7 @@ end
 # Computes dest -= C*diagm(d)*C', in the lower diagonal
 function update_columns!(dest, d::AbstractVector, C::AbstractMatrix)
     Ct = C'
-    Cdt = scale(d, Ct)
+    Cdt = Diagonal(d) * Ct
     K = size(dest, 1)
     nc = size(C, 2)
     for j = 1:K
