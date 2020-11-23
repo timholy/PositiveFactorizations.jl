@@ -1,6 +1,8 @@
 using PositiveFactorizations
 using LinearAlgebra, Test
 
+import ForwardDiff, ReverseDiff
+
 @testset "PositiveFactorizations" begin
 for pivot in (Val{false}, Val{true})
     A = [1 0; 0 1]
@@ -46,6 +48,24 @@ for pivot in (Val{false}, Val{true})
     a = BigFloat.(1:15); A = a * a'
     F = cholesky(Positive, A, pivot)
     F, d = ldlt(Positive, A, pivot)
+
+    # Differentiability test
+    g = ForwardDiff.gradient((x) -> det(cholesky(Positive, Matrix(Hermitian(Diagonal(x))), pivot)), [ 2.0, 3.0 ])
+    @test g ≈ [ 3.0, 2.0 ]
+
+    g = ReverseDiff.gradient((x) -> det(cholesky(Positive, Matrix(Hermitian(Diagonal(x))), pivot)), [ 2.0, 3.0 ])
+    @test g ≈ [ 3.0, 2.0 ]
+
+    # Extra 'collect' are needed for ReverseDiff
+    vec_to_hermitian = (v) -> begin A = I - 2 * v * collect(v'); A = collect(A') * A end;
+
+    v = rand(10)
+    g1 = ForwardDiff.gradient((x) -> det(cholesky(Positive, vec_to_hermitian(x), pivot)), v)
+    g2 = ForwardDiff.gradient((x) -> det(cholesky(vec_to_hermitian(x))), v)
+    @test g1 ≈ g2
+    g1 = ReverseDiff.gradient((x) -> det(cholesky(Positive, vec_to_hermitian(x), pivot)), v)
+    g2 = ReverseDiff.gradient((x) -> det(cholesky(vec_to_hermitian(x))), v)
+    @test g1 ≈ g2
 end
 
 A = [1 0; 0 -2]
