@@ -18,11 +18,11 @@ cholesky!(::Type{Positive{T}}, A::AbstractMatrix{T}, pivot=Val{false}; tol=defau
 cholesky!(::Type{Positive}, A::AbstractMatrix{T}, pivot=Val{false}; tol=default_tol(A), blocksize=default_blocksize(T)) where {T<:AbstractFloat} = cholesky!(Positive{T}, A; tol=tol, blocksize=blocksize)
 
 # Blocked, cache-friendly algorithm (unpivoted)
-function ldlt!(::Type{Positive{T}}, A::AbstractMatrix{T}, pivot::Type{Val{false}}=Val{false}; tol=default_tol(A), blocksize=default_blocksize(T)) where {T<:AbstractFloat}
+function ldlt!(::Type{Positive{T}}, A::AbstractMatrix{T}, pivot::Type{Val{false}}=Val{false}; tol=default_tol(A), blocksize=default_blocksize(T)) where {T}
     size(A,1) == size(A,2) || error("A must be square")
     eltype(A)<:Real || error("element type $(eltype(A)) not yet supported")
     K = size(A, 1)
-    d = Array{Int8}(undef, K)
+    d = Array{signtype(T)}(undef, K)
     for j = 1:blocksize:K
         # Split A into
         #            |
@@ -51,11 +51,11 @@ function ldlt!(::Type{Positive{T}}, A::AbstractMatrix{T}, pivot::Type{Val{false}
 end
 
 # Version with pivoting
-function ldlt!(::Type{Positive{T}}, A::AbstractMatrix{T}, pivot::Type{Val{true}}; tol=default_tol(A), blocksize=default_blocksize(T)) where {T<:AbstractFloat}
+function ldlt!(::Type{Positive{T}}, A::AbstractMatrix{T}, pivot::Type{Val{true}}; tol=default_tol(A), blocksize=default_blocksize(T)) where {T}
     size(A,1) == size(A,2) || error("A must be square")
     eltype(A)<:Real || error("element type $(eltype(A)) not yet supported")
     K = size(A, 1)
-    d = Array{Int8}(undef, K)
+    d = Array{signtype(T)}(undef, K)
     piv = convert(Vector{BlasInt}, 1:K)
     Ad = diag(A)
     for j = 1:blocksize:K
@@ -71,7 +71,7 @@ function ldlt!(::Type{Positive{T}}, A::AbstractMatrix{T}, pivot::Type{Val{true}}
     CholeskyPivoted(A, 'L', piv, BLAS.BlasInt(K), tol, BLAS.BlasInt(0)), d
 end
 
-ldlt!(::Type{Positive}, A::AbstractMatrix{T}, pivot=Val{false}; tol=default_tol(A), blocksize=default_blocksize(T)) where {T<:AbstractFloat} = ldlt!(Positive{T}, A; tol=tol, blocksize=blocksize)
+ldlt!(::Type{Positive}, A::AbstractMatrix{T}, pivot=Val{false}; tol=default_tol(A), blocksize=default_blocksize(T)) where {T} = ldlt!(Positive{T}, A; tol=tol, blocksize=blocksize)
 
 
 function solve_diagonal!(B, d, tol)
@@ -263,6 +263,11 @@ end
 
 floattype(::Type{T}) where {T<:AbstractFloat} = T
 floattype(::Type{T}) where {T<:Integer} = Float64
+floattype(::Type{T}) where {T<:Real} = T
+
+signtype(::Type{T}) where {T<:AbstractFloat} = Int8
+signtype(::Type{T}) where {T<:Integer} = Int8
+signtype(::Type{T}) where {T<:Real} = T
 
 const cachesize = 2^15
 
